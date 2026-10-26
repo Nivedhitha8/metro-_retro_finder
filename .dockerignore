@@ -1,0 +1,6 @@
+.git
+metro
+metro.exe
+*.bat
+*.sh
+README.md

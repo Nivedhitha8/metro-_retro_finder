@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f5f8">
+<title>Metro Route Finder</title>
+<style>
+:root{
+  --ink:#121826;--soft:#3b4456;--muted:#7a8497;--hair:rgba(18,24,38,.09);
+  --accent:#3d5a99;--l-blue:#4a6fb5;--l-green:#4f9a78;--l-other:#8b7bb5;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{color-scheme:light;min-height:100%;background:#eef1f5}
+body{margin:0;min-height:100vh;min-height:100dvh;color:var(--ink);-webkit-font-smoothing:antialiased;
+  font:16px/1.55 Inter,"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(900px 520px at 85% -12%,rgba(140,160,205,.30),transparent 62%),
+    radial-gradient(700px 480px at -8% 8%,rgba(255,255,255,.95),transparent 60%),
+    linear-gradient(180deg,#f7f8fb 0%,#edf0f5 100%)}
+.wrap{max-width:640px;margin:0 auto;padding:max(26px,env(safe-area-inset-top)) 20px 64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.92rem;letter-spacing:.01em;color:var(--soft)}
+.mark{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ink);color:#fff}
+header{padding:44px 0 28px}
+h1{margin:0 0 10px;font:400 clamp(2.4rem,8vw,3.4rem)/1.04 var(--serif);letter-spacing:-.025em}
+header p{margin:0;color:var(--muted);max-width:44ch}
+.card{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);border-radius:26px;padding:12px;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 0 0 1px var(--hair),0 24px 48px -28px rgba(30,42,70,.28);
+  -webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2)}
+#f{position:relative;z-index:10}
+.legs{position:relative;background:#fff;border-radius:18px;box-shadow:0 0 0 1px var(--hair);transition:box-shadow .2s}
+.legs:focus-within{box-shadow:0 0 0 1px rgba(61,90,153,.55),0 0 0 4px rgba(61,90,153,.12)}
+.leg{position:relative;display:flex;gap:16px;align-items:center;padding:12px 64px 12px 18px}
+.leg+.leg{border-top:1px solid var(--hair)}
+.pin{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.leg+.leg .pin{border-radius:3px;background:var(--ink)}
+.legs::before{content:"";position:absolute;left:23px;top:36px;bottom:36px;border-left:2px dotted rgba(18,24,38,.25)}
+.leg>div{flex:1;min-width:0}
+label.t{display:block;font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+input[type=text]{width:100%;padding:2px 0 0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;font-weight:500;text-overflow:ellipsis}
+input[type=text]::placeholder{color:#a3acbb;font-weight:400}
+input[type=text]:focus{outline:0}
+.swap{position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:2;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--hair);background:#fff;color:var(--soft);font-size:1rem;cursor:pointer;
+  box-shadow:0 2px 8px rgba(30,42,70,.1);transition:background .15s,transform .25s}
+.swap:hover{background:#f3f5f8}.swap:active{transform:translateY(-50%) rotate(180deg)}
+.dd{position:absolute;left:-1px;right:-1px;top:calc(100% + 8px);z-index:30;max-height:264px;overflow-y:auto;margin:0;padding:6px;list-style:none;
+  background:#fff;border-radius:16px;box-shadow:0 0 0 1px var(--hair),0 24px 48px -12px rgba(30,42,70,.35);overscroll-behavior:contain}
+.dd[hidden]{display:none}
+.dd li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:10px 12px;border-radius:10px;cursor:pointer;word-break:break-word;font-size:.97rem}
+.dd li small{color:var(--muted);font-size:.74rem;white-space:nowrap}
+.dd li.act{background:#f1f3f7}.dd li.cur{font-weight:700}
+.dd .none{color:var(--muted);cursor:default}
+.opts{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 4px 4px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:rgba(18,24,38,.06)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:8px 16px;border-radius:999px;font-size:.88rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.seg input:checked+label{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(30,42,70,.18)}
+.seg input:focus-visible+label{outline:3px solid rgba(61,90,153,.35)}
+.go{margin-left:auto;display:inline-flex;gap:8px;align-items:center;padding:13px 24px;border:0;border-radius:999px;background:var(--ink);color:#fff;
+  font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s,background .15s}
+.go:hover{background:#252e45;transform:translateY(-1px)}.go:disabled{opacity:.55;cursor:wait;transform:none}
+.go:focus-visible,.swap:focus-visible{outline:3px solid rgba(61,90,153,.4);outline-offset:2px}
+.err{margin:16px 4px 0;padding:12px 16px;border-radius:14px;background:#fff;color:#a3321f;box-shadow:0 0 0 1px rgba(163,50,31,.2)}
+#result{margin-top:18px}
+#result .card{padding:26px 24px 20px;animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#result .card{animation:none}}
+.trip{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 20px;font:400 1.35rem/1.25 var(--serif);letter-spacing:-.01em}
+.trip i{font-style:normal;color:var(--muted);font-family:inherit}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);margin:0 0 24px;border-block:1px solid var(--hair)}
+.sum div{padding:16px 0 14px 18px}.sum div:first-child{padding-left:0}
+.sum div+div{border-left:1px solid var(--hair)}
+.sum b{display:block;font-size:2rem;font-weight:600;line-height:1.1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.sum b small{font-size:.9rem;font-weight:500;color:var(--muted);margin-left:3px;letter-spacing:0}
+.sum span{font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+ol.route{list-style:none;margin:0;padding:0}
+.stop{position:relative;padding:0 0 14px 34px;min-height:34px}
+.stop::before{content:"";position:absolute;left:10px;top:17px;bottom:-5px;width:3px;border-radius:2px;background:var(--c)}
+.stop:last-child::before{display:none}
+.stop::after{content:"";position:absolute;left:5px;top:5px;width:13px;height:13px;border-radius:50%;background:#fff;border:2.5px solid var(--c)}
+.stop.end::after{background:var(--c);box-shadow:0 0 0 3px #fff,0 0 0 4.5px var(--c)}
+.stop:last-child{padding-bottom:0}
+.nm{padding-top:1px;word-break:break-word;color:var(--soft)}
+.stop.end .nm{color:var(--ink);font-weight:600;font-size:1.04rem}
+.tag{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:2px 10px 2px 8px;border-radius:999px;box-shadow:0 0 0 1px var(--hair);background:#fff;color:var(--ink);font-size:.72rem;font-weight:600;vertical-align:2px;white-space:nowrap}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--t)}
+.ln{color:var(--muted);font-size:.8rem;margin-left:8px}
+details{margin:26px 4px 0;color:var(--muted);font-size:.88rem}
+summary{cursor:pointer;font-weight:600;color:var(--soft)}
+details p{max-width:60ch}
+@media (max-width:560px){
+  .wrap{padding-left:14px;padding-right:14px}header{padding-top:34px}
+  .card{border-radius:22px;padding:10px}
+  .leg{padding-right:58px}
+  .opts{flex-direction:column;align-items:stretch}.seg{display:flex}.seg label{flex:1;text-align:center;padding:9px 6px}
+  .go{margin-left:0;justify-content:center}
+  #result .card{padding:22px 18px 18px}
+  .sum div{padding-left:12px}.sum b{font-size:1.6rem}
+  .trip{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand"><span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 11h14M9 21l2-4M15 21l-2-4"/></svg></span>Metro Route Finder</div>
+<header>
+  <h1>Choose where to go?</h1>
+  <p>Find the smartest way across the city. Faster routes, fewer stops, and seamless metro travel.</p>
+</header>
+<main>
+  <form class="card" id="f" autocomplete="off">
+    <div class="legs">
+      <div class="leg fld"><span class="pin"></span><div><label class="t" for="from">From</label><input type="text" id="from" placeholder="Search or choose a station" required role="combobox" aria-autocomplete="list" aria-expanded="false"></div><ul class="dd" id="dd-from" role="listbox" hidden></ul></div>
+      <div class="leg fld"><span class="pin"></span><div><label class="t" for="to">To</label><input type="text" id="to" placeholder="Search or choose a station" required role="combobox" aria-autocomplete="list" aria-expanded="false"></div><ul class="dd" id="dd-to" role="listbox" hidden></ul></div>
+      <button type="button" class="swap" id="swap" aria-label="Swap stations">&#8645;</button>
+    </div>
+    <div class="opts">
+      <div class="seg">
+        <input type="radio" name="mode" id="m1" value="time" checked><label for="m1">Fastest</label>
+        <input type="radio" name="mode" id="m2" value="stops"><label for="m2">Fewest stops</label>
+      </div>
+      <button class="go" id="go" type="submit">Find route <span aria-hidden="true">&rarr;</span></button>
+    </div>
+  </form>
+  <div id="result" aria-live="polite"></div>
+  <details>
+    <summary>How the route is found</summary>
+    <p>Stations are vertices and tracks are weighted edges (minutes) in an adjacency-list graph. <b>Fastest</b> runs Dijkstra's algorithm with a binary min-heap. <b>Fewest stops</b> runs breadth-first search. A station on two lines is an interchange.</p>
+  </details>
+</main>
+</div>
+<script>
+const colors={Blue:'#4a6fb5',Green:'#4f9a78'};
+const col=l=>colors[l]||'#8b7bb5';
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let ST=[];
+fetch('/api/stations').then(r=>r.json()).then(l=>{ST=l}).catch(()=>{$('result').innerHTML='<p class="err">Cannot reach the server.</p>'});
+function combo(id){
+  const inp=$(id),dd=$('dd-'+id);let act=-1,items=[];
+  const same=(s)=>s.name.toLowerCase()==inp.value.trim().toLowerCase();
+  const render=q=>{
+    q=(q||'').trim().toLowerCase();
+    items=ST.filter(s=>!q||s.name.toLowerCase().includes(q));
+    dd.innerHTML=items.length?items.map((s,i)=>'<li role="option" data-i="'+i+'"'+(same(s)?' class="cur"':'')+'><span>'+esc(s.name)+'</span><small>'+esc(s.lines.join(' / '))+'</small></li>').join(''):'<li class="none">No matching station</li>';
+    act=items.findIndex(same);mark();
+  };
+  const mark=()=>{dd.querySelectorAll('li').forEach((li,i)=>li.classList.toggle('act',i==act));const a=dd.querySelector('.act');if(a)a.scrollIntoView({block:'nearest'})};
+  const open=all=>{render(all?'':inp.value);dd.hidden=false;inp.setAttribute('aria-expanded','true');const a=dd.querySelector('.act');if(a)dd.scrollTop=Math.max(0,a.offsetTop-dd.clientHeight/2)};
+  const close=()=>{dd.hidden=true;inp.setAttribute('aria-expanded','false')};
+  const pick=i=>{if(items[i])inp.value=items[i].name;close()};
+  inp.addEventListener('focus',()=>{inp.select();open(true)});
+  inp.addEventListener('click',()=>{if(dd.hidden){inp.select();open(true)}});
+  inp.addEventListener('input',()=>open(false));
+  inp.addEventListener('blur',close);
+  dd.addEventListener('mousedown',e=>{e.preventDefault();const li=e.target.closest('li[data-i]');if(li)pick(+li.dataset.i)});
+  inp.addEventListener('keydown',e=>{
+    if(e.key=='ArrowDown'||e.key=='ArrowUp'){e.preventDefault();if(dd.hidden)open(true);if(items.length){act=(act+(e.key=='ArrowDown'?1:-1)+items.length)%items.length;mark()}}
+    else if(e.key=='Enter'&&!dd.hidden&&act>=0){e.preventDefault();pick(act)}
+    else if(e.key=='Escape')close();
+  });
+}
+combo('from');combo('to');
+$('swap').onclick=()=>{const a=$('from').value;$('from').value=$('to').value;$('to').value=a};
+$('f').onsubmit=async e=>{
+  e.preventDefault();
+  const mode=document.querySelector('input[name=mode]:checked').value;
+  const url='/api/route?from='+encodeURIComponent($('from').value.trim())+'&to='+encodeURIComponent($('to').value.trim())+'&mode='+mode;
+  $('go').disabled=true;
+  let d;
+  try{d=await (await fetch(url)).json()}catch(x){d={ok:false,error:'Cannot reach the server.'}}
+  $('go').disabled=false;
+  if(!d.ok){$('result').innerHTML='<p class="err">'+esc(d.error)+'</p>';return}
+  const last=d.path.length-1;
+  $('result').innerHTML='<div class="card"><p class="trip"><span>'+esc(d.path[0].station)+'</span><i>&rarr;</i><span>'+esc(d.path[last].station)+'</span></p>'+
+  '<div class="sum"><div><b>'+d.minutes+'<small>min</small></b><span>Travel time</span></div><div><b>'+d.stops+'</b><span>Stops</span></div><div><b>'+d.interchanges+'</b><span>Interchange'+(d.interchanges==1?'':'s')+'</span></div></div><ol class="route">'+
+  d.path.map((p,i)=>'<li class="stop'+(i==0||i==last?' end':'')+'" style="--c:'+col(p.line)+'"><div class="nm">'+esc(p.station)+(p.change?'<span class="tag" style="--t:'+col(p.line)+'">Change to '+esc(p.line)+' line</span>':'')+(i==0?'<span class="ln">'+esc(p.line)+' line</span>':'')+'</div></li>').join('')+'</ol></div>';
+  $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+</script>
+</body>
+</html>
